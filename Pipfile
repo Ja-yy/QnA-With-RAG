@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+langchain = "*"
+openai = "==1.6.1"
+streamlit = "==1.29.0"
+
+[dev-packages]
+black = "*"
+isort = "*"
+autoflake = "*"
+
+[requires]
+python_version = "3.12"
