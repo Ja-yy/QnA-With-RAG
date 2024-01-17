@@ -4,14 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-langchain = "*"
+langchain = "==0.1.1"
 openai = "==1.6.1"
 streamlit = "==1.29.0"
+chromadb = "==0.4.22"
 
 [dev-packages]
 black = "*"
 isort = "*"
 autoflake = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.12"
