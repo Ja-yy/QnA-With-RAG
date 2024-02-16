@@ -1,0 +1,39 @@
+version: '3.9'
+
+networks:
+  net:
+    driver: bridge
+    name:  qnallm
+  
+services:
+  chromadb:
+    container_name: chromdb
+    image: ghcr.io/chroma-core/chroma:latest
+    env_file:
+      - ./.env
+    volumes:
+      - chroma-data:/chroma/chroma/
+    ports:
+      - 8000:8000
+    networks:
+      - net
+  app:
+        build: ./
+        image: qnallm:latest
+        container_name: qna-streamlit
+        restart: always
+        depends_on:
+            - chromadb
+        volumes:
+            - .:/app 
+        ports:
+            - 8501:8501
+        command: streamlit run main.py --server.port 8501
+        networks:
+          - net
+        
+      
+volumes:
+  chroma-data:
+    driver: local
+  backups: ~

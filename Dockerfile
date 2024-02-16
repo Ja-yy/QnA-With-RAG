@@ -1,6 +1,16 @@
-FROM ghcr.io/chroma-core/chroma:latest
+FROM python:3.10
 
-RUN apt-get update \
-    && apt-get install -y build-essential libomp-dev
+WORKDIR /app
 
-RUN pip install --force-reinstall --no-cache-dir hnswlib
+# dont write pyc files
+# dont buffer to stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+COPY ./requirements.txt /app/requirements.txt
+
+# dependencies
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install -r requirements.txt
+
+COPY ./ /app

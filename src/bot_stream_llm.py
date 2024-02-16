@@ -1,106 +1,57 @@
 import os
-import re
-import queue
-import json
-from typing import Any, List
+from typing import Any
 
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chat_models.openai import ChatOpenAI
-from langchain.schema import ChatGeneration
-from langchain.schema.messages import BaseMessage, ChatMessage
+from langchain_openai import ChatOpenAI
+from langchain.schema.messages import BaseMessage
+from config import openai_config
+from src.chroma_client import chroma_db
 
 
-class ThreadedGenerator:
-    def __init__(self):
-        self.queue = queue.Queue()
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        item = self.queue.get()
-        if item is StopIteration:
-            raise item
-        return item
-
-    def send(
-        self,
-        data: str,
-        chunked: bool
-    ):
-        content = json.dumps(
-            {
-                "content": data,
-                "chunk": chunked,
-            }
-        )
-        self.queue.put(content)
-
-    def close(self):
-        self.queue.put(StopIteration)
-
-
-class StreamCallback(BaseCallbackHandler):
-    def __init__(self, gen: ThreadedGenerator):
-        self.gen = gen
+class StreamHandler(BaseCallbackHandler):
+    def __init__(self, container, initial_text=""):
+        self.container = container
+        self.text = initial_text
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
-
-        contents = re.split(r"(\s+)", token)
-        for data in contents:
-            self.gen.send(data, chunked=True)
-
-    def send_data_with_props(
-        self,
-        data: str = "",
-        chunked: bool = False,
-    ) -> None:
-        self.gen.send(
-            data,
-            chunked=chunked,
-        )
-
-    @property
-    def ignore_retry(self) -> bool:
-        return True
+        self.text += token
+        self.container.markdown(self.text)
 
 
 class CustomChatOpenAI:
     def __init__(self, **kwargs):
         self.llm_kwargs = kwargs
-        self.llm_kwargs["temperature"] = 0
-        self.llm_kwargs["max_retries"] = 2
-        self.llm_kwargs["request_timeout"] = 15
-        self.llm_kwargs["model"] = "gpt-3.5-turbo"
+        self.llm_kwargs["temperature"] = openai_config.TEMPERATURE
+        self.llm_kwargs["max_retries"] = openai_config.MAX_RETRIES
+        self.llm_kwargs["request_timeout"] = openai_config.REQUEST_TIMEOUT
+        self.llm_kwargs["model"] = openai_config.CHAT_MODEL
 
-    def __call__(self, **kwargs: Any) -> BaseMessage:
-
+    def __call__(self, *args, **kwargs: Any) -> BaseMessage:
+        que = args[0]
         llm = ChatOpenAI(**self.llm_kwargs)
+        llm_result = llm.invoke(que)
 
-        llm_result = llm.generate(**kwargs)
+        generations_ = llm_result.content
 
-        generations_ = llm_result.generations[0][0]
-
-        # check if generations_ is of type ChatGeneration
-        if isinstance(generations_, ChatGeneration):
-            # typecast to ChatGeneration
-            response = generations_.message
-        else:
-            response = generations_.text
-        return response
+        return generations_
 
 
 class StreamChatOpenAI:
     def __init__(
         self,
-        gen: ThreadedGenerator = ThreadedGenerator(),
+        container,
         **kwargs,
     ):
         self.streaming = os.getenv("STREAMING", "True").lower() == "true"
-        self.stream_callback = StreamCallback(
-            gen=gen)
+        self.stream_callback = StreamHandler(container)
         self.llm = CustomChatOpenAI(
             callbacks=[self.stream_callback],
             streaming=self.streaming,
             **kwargs,
         )
+
+    def __call__(self, *args, **kwargs: Any) -> BaseMessage:
+        response = self.llm.__call__(*args, **kwargs)
+        if not self.streaming:
+            self.stream_callback.on_llm_new_token(response.content)
+        return response

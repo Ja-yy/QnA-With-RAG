@@ -1,36 +1,55 @@
-from src.agents import Agent
-from src.bot_stream_llm import StreamChatOpenAI, ThreadedGenerator
-import threading
+
+from src.bot_stream_llm import CustomChatOpenAI
+from src.agents.prompt.query_generator_prompr import query_prompt_template, search_query_parser
+from src.utils import search_doc
+
+from src.agents.prompt.main_prompt_templae import main_prompt_template
+from src.chroma_client import chroma_db
+from langchain.schema.runnable import RunnableMap, RunnablePassthrough
+
+from langchain.schema.output_parser import StrOutputParser
 
 
-class MainAgent(Agent):
-    name = "main_agent"
+class MainAgent:
 
-    def __init__(self):
-        self.stream: ThreadedGenerator = ThreadedGenerator()
-        self.llm: StreamChatOpenAI = StreamChatOpenAI(
-            gen=self.stream)
+    def __init__(self, llm: CustomChatOpenAI, knowlwdge_name: str) -> None:
+        self.llm = llm
+        self.retriever = chroma_db.get_vectore_store(knowlwdge_name)
 
-    def _ask(self,
-             raise_exception: bool = False) -> None:
+    def query_chain(self):
+        local_llm = CustomChatOpenAI()
+        chain_map = {
+            "answer": {"question": RunnablePassthrough()}
+            | query_prompt_template
+            | local_llm
+            | search_query_parser,
+        }
+        return RunnableMap(chain_map)
 
-        counter: int = 0
-        while True:
-            input_req = self.act()
-            if input_req is not False:  # continue only if input_req is False
-                break
-            # Prevent infinite loops.
-            counter += 1
-            if counter > 5:
-                break
-        self.stream.close()
+    def run(self, question: str):
 
-    def ask(self, *args, **kwargs):
-        # kwargs['raise_exception'] = False
-        threading.Thread(target=self._ask, args=args, kwargs=kwargs).start()
-        return self.stream
+        _input = self.query_chain()
 
-    def act(self) -> bool:
-        content = "Hello,What can I do for you?"
-        self.llm.stream_callback.on_llm_new_token(content)
-        return True
+        _context = {
+            "context": lambda x: search_doc(x["answer"], self.retriever),
+            "question": RunnablePassthrough()
+        }
+        chain = _input | _context | main_prompt_template | self.llm | StrOutputParser()
+        result = chain.invoke(question)
+        return result
+
+    # def run(self,question:str):
+
+    #     local_llm = CustomChatOpenAI()
+
+    #     query_prompt = query_prompt_template.format(question=question)
+
+    #     # search queires
+    #     query_response = local_llm(query_prompt)
+    #     output_parser = search_query_parser.parse(
+    #         query_response)  # search_queries
+    #     context = search_doc(output_parser, self.retriever)
+
+    #     main_prompt = main_prompt_template.format(question=question,context=context)
+    #     response = self.llm.__call__(main_prompt)
+    #     return response
