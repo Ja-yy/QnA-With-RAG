@@ -1,4 +1,3 @@
-
 from src.agents import MainAgent
 from src.utils import parse_chunked_response
 
@@ -13,6 +12,6 @@ from src.utils import parse_chunked_response
 while True:
     bot = MainAgent()
     user_input = input("User Input:")
-    for i, token in enumerate(bot.ask(user_input)):
+    for token in bot.ask(user_input):
         # Print as a stream
         print(parse_chunked_response(token), end="", flush=True)
