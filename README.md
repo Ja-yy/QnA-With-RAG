@@ -24,6 +24,7 @@ This project is more than just a chatbot. I want to learn how to code a producti
 - Chat <u>streaming</u> 
 - Upload <u>multiple</u> Text file
 - <u>Maintainable</u> vector DB (add, delete files)
+- Static API Token Authentication for ChromaDB
 - Create <u>more than one</u> knowledge base
 
 ### Future Development and Features
