@@ -2,10 +2,10 @@ import os
 from typing import Any
 
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain_openai import ChatOpenAI
 from langchain.schema.messages import BaseMessage
+from langchain_openai import ChatOpenAI
+
 from config import openai_config
-from src.chroma_client import chroma_db
 
 
 class StreamHandler(BaseCallbackHandler):

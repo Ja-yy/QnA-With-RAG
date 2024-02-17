@@ -1,8 +1,8 @@
+from typing import List
 
+from langchain.schema.retriever import BaseRetriever
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from typing import List
-from langchain.schema.retriever import BaseRetriever
 
 
 def create_chunks(files: bytes, knowledge_base: str) -> List[Document]:
@@ -21,13 +21,15 @@ def create_chunks(files: bytes, knowledge_base: str) -> List[Document]:
         file_content = file.read()
         file_name = file.name
 
-        doc_obj.append(Document(
-            page_content=file_content,
-            metadata={
-                "file_name": file_name,
-                "knowledge_base": knowledge_base,
-            },
-        ))
+        doc_obj.append(
+            Document(
+                page_content=file_content,
+                metadata={
+                    "file_name": file_name,
+                    "knowledge_base": knowledge_base,
+                },
+            )
+        )
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1500, chunk_overlap=200, length_function=len
     )

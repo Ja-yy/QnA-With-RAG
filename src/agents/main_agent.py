@@ -1,13 +1,14 @@
-
-from src.bot_stream_llm import CustomChatOpenAI
-from src.agents.prompt.query_generator_prompr import query_prompt_template, search_query_parser
-from src.utils import search_doc
-
-from src.agents.prompt.main_prompt_templae import main_prompt_template
-from src.chroma_client import chroma_db
+from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnableMap, RunnablePassthrough
 
-from langchain.schema.output_parser import StrOutputParser
+from src.agents.prompt.main_prompt_templae import main_prompt_template
+from src.agents.prompt.query_generator_prompr import (
+    query_prompt_template,
+    search_query_parser,
+)
+from src.bot_stream_llm import CustomChatOpenAI
+from src.chroma_client import chroma_db
+from src.utils import search_doc
 
 
 class MainAgent:
@@ -32,7 +33,7 @@ class MainAgent:
 
         _context = {
             "context": lambda x: search_doc(x["answer"], self.retriever),
-            "question": RunnablePassthrough()
+            "question": RunnablePassthrough(),
         }
         chain = _input | _context | main_prompt_template | self.llm | StrOutputParser()
         result = chain.invoke(question)

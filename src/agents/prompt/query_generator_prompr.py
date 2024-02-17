@@ -1,8 +1,8 @@
-from langchain.prompts import StringPromptTemplate
-from langchain_core.prompts.base import BasePromptTemplate
-from pydantic.v1 import BaseModel, validator, Field
-from typing import Callable, List, Optional, Union
+from typing import List, Optional
+
 from langchain.output_parsers import PydanticOutputParser
+from langchain.prompts import StringPromptTemplate
+from pydantic.v1 import BaseModel, Field, validator
 
 
 class SearchQueryParser(BaseModel):
@@ -41,4 +41,5 @@ Main Question: {kwargs["question"]}
 
 
 query_prompt_template = QueryGeneratorPromptTemplate(
-    input_variables=["question"], output_parser=search_query_parser)
+    input_variables=["question"], output_parser=search_query_parser
+)

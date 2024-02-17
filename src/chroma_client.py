@@ -1,38 +1,43 @@
-from typing import Type, List
+from typing import List
 
-from chromadb import HttpClient
-from chromadb.config import Settings
-from chromadb.api.models.Collection import Collection
-from chromadb.utils import embedding_functions
-from langchain_openai import OpenAIEmbeddings
-from langchain.vectorstores.chroma import Chroma
-from config import chromadb_config, openai_config
-from langchain_core.vectorstores import VectorStoreRetriever
-from chromadb.api import ClientAPI
 import streamlit as st
-import re
+from chromadb import HttpClient
+from chromadb.api import ClientAPI
+from chromadb.api.models.Collection import Collection
+from chromadb.config import Settings
+from chromadb.utils import embedding_functions
+from langchain.vectorstores.chroma import Chroma
+from langchain_core.vectorstores import VectorStoreRetriever
+from langchain_openai import OpenAIEmbeddings
+
+from config import chromadb_config, openai_config
 
 
 class BaseChroma:
     def __init__(self) -> None:
         self.embedding_funcation = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=openai_config.OPENAI_API_KEY, model_name=openai_config.EMBEDDING_MODEL
+            api_key=openai_config.OPENAI_API_KEY,
+            model_name=openai_config.EMBEDDING_MODEL,
         )
         self.chroma_client: ClientAPI = HttpClient(
             host=chromadb_config.CHROMADB_HOST,
             port=chromadb_config.CHROMADB_PORT,
-            settings=Settings(chroma_client_auth_provider="token",
-                              chroma_client_auth_credentials=chromadb_config.CHROMA_SERVER_AUTH_CREDENTIALS),
+            settings=Settings(
+                chroma_client_auth_provider="token",
+                chroma_client_auth_credentials=chromadb_config.CHROMA_SERVER_AUTH_CREDENTIALS,
+            ),
         )
         self.embeddings = OpenAIEmbeddings(
-            openai_api_key=openai_config.OPENAI_API_KEY, model=openai_config.EMBEDDING_MODEL
+            openai_api_key=openai_config.OPENAI_API_KEY,
+            model=openai_config.EMBEDDING_MODEL,
         )
         self.collection_name: str = chromadb_config.COLLATION_NAME
 
     @property
     def default_collection(self):
         return self.chroma_client.get_or_create_collection(
-            embedding_function=self.embedding_funcation, name=self.collection_name)
+            embedding_function=self.embedding_funcation, name=self.collection_name
+        )
 
     def _create_collection(self, new_collection_name: str = "default") -> Collection:
         try:
@@ -83,10 +88,19 @@ class BaseChroma:
         try:
             collection_res = self._get_collection(knowledge_base_name)
             file_list = collection_res.get(
-                where={"knowledge_base": knowledge_base_name}, include=["metadatas"])
-            result_dict = {i: {"id": id_value, "file_name": metadata["file_name"], "knowledge_base": metadata["knowledge_base"]}
-                           for i, (id_value, metadata) in enumerate(zip(file_list["ids"], file_list["metadatas"]))
-                           if id_value not in set(file_list["ids"][:i])}
+                where={"knowledge_base": knowledge_base_name}, include=["metadatas"]
+            )
+            result_dict = {
+                i: {
+                    "id": id_value,
+                    "file_name": metadata["file_name"],
+                    "knowledge_base": metadata["knowledge_base"],
+                }
+                for i, (id_value, metadata) in enumerate(
+                    zip(file_list["ids"], file_list["metadatas"])
+                )
+                if id_value not in set(file_list["ids"][:i])
+            }
             return result_dict
         except ValueError:
             return "No collection found"
@@ -97,7 +111,9 @@ class BaseChroma:
         except ValueError:
             return "Something went wrong"
 
-    def delete_files_from_knowledge_base(self, knowledge_base_name: str, file_name: List[str]):
+    def delete_files_from_knowledge_base(
+        self, knowledge_base_name: str, file_name: List[str]
+    ):
         collection_res = self._get_collection(knowledge_base_name)
         try:
             for file in file_name:

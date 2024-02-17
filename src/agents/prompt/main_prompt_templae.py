@@ -1,6 +1,5 @@
-from typing import Any
 from langchain.prompts import StringPromptTemplate
-from pydantic.v1 import BaseModel, validator, Field
+from pydantic.v1 import BaseModel, validator
 
 
 class MainChainPromptTemplate(StringPromptTemplate, BaseModel):
@@ -9,8 +8,7 @@ class MainChainPromptTemplate(StringPromptTemplate, BaseModel):
     def validate_input_variables(cls, v):
         """Validate that the input variables are correct."""
         if len(v) != 2 or "context" not in v or "question" not in v:
-            raise ValueError(
-                "context and question must be the only input_variables.")
+            raise ValueError("context and question must be the only input_variables.")
         return v
 
     def format(self, **kwargs) -> str:
@@ -27,5 +25,4 @@ Question: {kwargs['question']}"""
         return "main_chain"
 
 
-main_prompt_template = MainChainPromptTemplate(
-    input_variables=["context", "question"])
+main_prompt_template = MainChainPromptTemplate(input_variables=["context", "question"])
