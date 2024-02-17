@@ -14,6 +14,9 @@ langchain-openai = "*"
 
 [dev-packages]
 ipykernel = "*"
+black = "*"
+isort = "*"
+autoflake = "*"
 
 [requires]
 python_version = "3.10"
