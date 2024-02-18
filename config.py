@@ -15,7 +15,7 @@ class OpenAI(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    OPENAI_API_KEY: str
+    OPENAI_API_KEY: str | None = None
     EMBEDDING_MODEL: str
     CHAT_MODEL: str
     TEMPERATURE: int
@@ -28,7 +28,6 @@ class ChromaDB(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    COLLATION_NAME: str
     CHROMADB_HOST: str
     CHROMADB_PORT: str
     CHROMA_SERVER_AUTH_CREDENTIALS: str

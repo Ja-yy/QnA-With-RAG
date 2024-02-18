@@ -21,6 +21,7 @@ class StreamHandler(BaseCallbackHandler):
 class CustomChatOpenAI:
     def __init__(self, **kwargs):
         self.llm_kwargs = kwargs
+        self.llm_kwargs["openai_api_key"] = openai_config.OPENAI_API_KEY
         self.llm_kwargs["temperature"] = openai_config.TEMPERATURE
         self.llm_kwargs["max_retries"] = openai_config.MAX_RETRIES
         self.llm_kwargs["request_timeout"] = openai_config.REQUEST_TIMEOUT
