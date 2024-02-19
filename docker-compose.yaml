@@ -9,8 +9,6 @@ services:
   chromadb:
     container_name: chromdb
     image: ghcr.io/chroma-core/chroma:latest
-    env_file:
-      - ./.env
     volumes:
       - chroma-data:/chroma/chroma/
     ports:

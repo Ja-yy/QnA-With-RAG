@@ -85,7 +85,7 @@ else:
                     )
                     st.rerun()
 
-            except:
-                st.warning("No Collection found!!!")
+            except Exception as e:
+                st.warning(f"No Collection found!!! {e}")
         else:
             st.warning("Select knowledge base to get files")

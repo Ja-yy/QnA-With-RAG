@@ -1,0 +1,56 @@
+name: Build and Deploy
+
+env:
+  OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
+  EMBEDDING_MODEL: "text-embedding-ada-002"
+  CHAT_MODEL: "gpt-3.5-turbo"
+  TEMPERATURE: 0
+  MAX_RETRIES: 2
+  REQUEST_TIMEOUT: 15
+  CHROMADB_HOST: ${{secrets.CHROMADB_HOST}}
+  CHROMADB_PORT: ${{secrets.CHROMADB_PORT}}
+  CHROMA_SERVER_AUTH_CREDENTIALS: ${{secrets.CHROMA_SERVER_AUTH_CREDENTIALS}}
+  CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: "chromadb.auth.token.TokenConfigServerAuthCredentialsProvider"
+  CHROMA_SERVER_AUTH_PROVIDER: "chromadb.auth.token.TokenAuthServerProvider"
+  CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER: ${{secrets.CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER}}
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency: ci-${{github.ref}}
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v4
+      - name: Install and Build  🔧
+        run: docker-compose  up -d --build
+      - name: Update pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: assert/
+
+  Deploy:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
