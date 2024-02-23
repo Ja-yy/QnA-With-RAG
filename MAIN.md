@@ -1,6 +1,6 @@
 # Q&A with Documents using RAG
 
-Welcome to our Streamlit application designed for Q&A with documents powered by RAG (Retriever-Reader-Generator).
+Welcome to our Streamlit application designed for Q&A with documents powered by RAG (Retrieval augmented generation).
 
 This full-stack application enables you to transform any text document or piece of content into contextual references that any language model can utilize during conversations. With this application, you can seamlessly add and delete documents and even create multiple knowledge bases to organize your information effectively.
 
@@ -18,7 +18,7 @@ This full-stack application enables you to transform any text document or piece 
 - Real-time chat streaming
 - Upload multiple text files simultaneously
 - Maintainable vector database (add and delete files)
-- Static API Token Authentication for ChromaDB
+- Static API Token Authentication for ChromaD
 - Create and manage multiple knowledge bases
 
 ### How to Use?
