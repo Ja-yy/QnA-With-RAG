@@ -31,6 +31,8 @@ class BaseChroma:
             openai_api_key=openai_config.OPENAI_API_KEY,
             model=openai_config.EMBEDDING_MODEL,
         )
+        # create a default collection
+        self.default_collection =self.chroma_client.get_or_create_collection("default")
 
     def _create_collection(self, new_collection_name: str = "default") -> Collection:
         "Create new collection in CHromaDB"
@@ -52,7 +54,7 @@ class BaseChroma:
         except:
             return "Collection not found!!!"
 
-    def get_vector_store(self, collection_name: str) -> VectorStoreRetriever:
+    def get_vector_store(self, collection_name: str = "default") -> VectorStoreRetriever:
         "Get vector store retriever"
         vectordb = Chroma(
             client=self.chroma_client,

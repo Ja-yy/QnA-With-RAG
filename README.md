@@ -32,10 +32,6 @@ This project is more than just a chatbot. I want to learn how to code a producti
 
 ![app-flow](assert/main-flow.drawio.png)
 
-### LLM flow
-
-Philosopher's Stone power",
-"Philosopher's Stone abilities"
 
 ### 🔜 Future Development and Features
 
