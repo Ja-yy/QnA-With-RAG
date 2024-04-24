@@ -32,6 +32,10 @@ This project is more than just a chatbot. I want to learn how to code a producti
 
 ![app-flow](assert/main-flow.drawio.png)
 
+### 🎬 Demo
+
+https://github.com/Ja-yy/QnA-With-RAG/assets/114324220/9a4327a0-2fae-4456-86be-a2a50bec96b0
+
 
 ### 🔜 Future Development and Features
 
