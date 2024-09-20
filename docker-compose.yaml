@@ -1,37 +1,47 @@
 version: '3.9'
 
-networks:
-  net:
-    driver: bridge
-    name:  qnallm
-  
 services:
   chromadb:
     container_name: chromdb
-    image: ghcr.io/chroma-core/chroma:latest
-    volumes:
-      - chroma-data:/chroma/chroma/
-    ports:
-      - 8000:8000
+    image: chromadb/chroma:latest
     networks:
-      - net
+      - default
+
   app:
-        build: ./
-        image: qnallm:latest
-        container_name: qna-streamlit
-        restart: always
-        depends_on:
-            - chromadb
-        volumes:
-            - .:/app 
-        ports:
-            - 8501:8501
-        command: streamlit run main.py --server.port 8501
-        networks:
-          - net
-        
-      
-volumes:
-  chroma-data:
-    driver: local
-  backups: ~
+    build: ./
+    image: qnallm:latest
+    container_name: qna-streamlit
+    restart: always
+    depends_on:
+      - chromadb
+    volumes:
+      - .:/app
+    command: streamlit run main.py --server.port 8501
+    networks:
+      - default
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/https.conf:/etc/nginx/https.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/docker-entrypoint.sh:/docker-entrypoint-mount.sh
+    entrypoint: [ "sh", "-c", "cp /docker-entrypoint-mount.sh /docker-entrypoint.sh && sed -i 's/\r$$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh && /docker-entrypoint.sh" ]
+    environment:
+      NGINX_SERVER_NAME: _
+      NGINX_HTTPS_ENABLED: false
+      NGINX_PORT: 80
+      NGINX_WORKER_PROCESSES: auto
+      NGINX_CLIENT_MAX_BODY_SIZE: 15M
+      NGINX_KEEPALIVE_TIMEOUT: 65
+      NGINX_PROXY_READ_TIMEOUT: 3600s
+      NGINX_PROXY_SEND_TIMEOUT: 3600s
+    depends_on:
+      - chromadb
+      - app
+    ports:
+      - "80:80"
+
